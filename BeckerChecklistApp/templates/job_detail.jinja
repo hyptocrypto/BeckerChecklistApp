@@ -1,0 +1,82 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <div class="container">
+    <h1>{{ job.name }}</h1>
+    <p>{{ job.description }}</p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job_item in job_items %}
+        <tr>
+          <td>{{ job_item.name }}</td>
+          <td>{{ job_item.description }}</td>
+          <td>
+            <input class="job-item" id="{{job_item.name}}-{{job_item.pk}}" onclick="saveJobItemState(this.id, this.checked)" type="checkbox" name="completed">
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="#" class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</a>
+
+
+	<script>
+        window.addEventListener('load', function () {
+            updateJobItemsStates();
+        })
+        function procJobItmes() {
+            var job_items = document.querySelectorAll('.job-item');
+            var items_data = {};
+            
+            for (var i = 0; i < job_items.length; i++) {
+                var job_item = job_items[i]
+                items_data[job_item.id] = job_item.checked 
+            }
+            return items_data
+        }
+        
+        function jobComplete() {
+            const job_items_data = procJobItmes()
+            
+            fetch(`/jobs/{{ job.pk }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ job_items_data: job_items_data, job_id: "{{job.pk}}" })
+            })
+            .then(data => {
+                localStorage.clear();
+                window.location.replace("/")
+            })
+            .catch(error => console.error(error));
+        }
+        function saveJobItemState(jobItemId, checked) {
+            localStorage.setItem(jobItemId, checked);
+        }
+        function updateJobItemsStates() {
+            const jobItems = document.querySelectorAll('.job-item');
+            jobItems.forEach((jobItem) => {
+                const itemId = jobItem.getAttribute('id');
+                const itemState = localStorage.getItem(itemId);
+                if (itemState != null){
+                    if (itemState === 'true') {
+                        jobItem.checked = true;
+                    } else {
+                        jobItem.checked = false;
+                    };
+                };
+            });
+            }
+    </script>
+  </div>
+{% endblock %}
+

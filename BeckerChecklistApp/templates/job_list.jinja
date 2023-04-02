@@ -1,0 +1,27 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <div class="container">
+    <h1>All Jobs</h1>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job.name }}</td>
+          <td>{{ job.description }}</td>
+          <td>
+            <a href="jobs/{{job.pk}}" class="btn btn-sm btn-primary">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
