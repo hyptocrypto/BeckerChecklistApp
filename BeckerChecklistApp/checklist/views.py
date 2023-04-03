@@ -5,7 +5,7 @@ from .models import Job, JobItem, CompletedJob, CompletedJobItem
 import json
 
 
-class JobListView(ListView):
+class JobListView(ListView, LoginRequiredMixin):
     model = Job
     template_name = "job_list.jinja"
     context_object_name = "jobs"
@@ -24,7 +24,7 @@ class CompletedJobListView(LoginRequiredMixin, ListView):
         return CompletedJob.objects.filter(user=self.request.user)
 
 
-class JobDetailView(DetailView):
+class JobDetailView(DetailView, LoginRequiredMixin):
     model = Job
     template_name = "job_detail.jinja"
     context_object_name = "job"

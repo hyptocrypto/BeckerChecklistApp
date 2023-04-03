@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-import os.path
-import sys
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,9 +25,11 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates/")
 SECRET_KEY = "django-insecure-tr$(ps-d-fbz*@(y90)*gazn_q#mi_b3h#tljx276v0w$up%01"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = "runserver" in sys.argv
+LOCAL = os.environ.get("LOCAL")
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://becker-app-gecb6vttdq-uc.a.run.app"]
 
 
 # Application definition
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,13 +85,24 @@ WSGI_APPLICATION = "BeckerChecklistApp.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if LOCAL:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": os.environ["DATABASE_NAME"],
+            "USER": os.environ["DATABASE_USER"],
+            "PASSWORD": os.environ["DATABASE_PASSWORD"],
+            "HOST": os.environ["DATABASE_HOST"],
+            "PORT": os.environ["DATABASE_PORT"],
+        }
+    }
 
 
 # Password validation
@@ -128,13 +141,16 @@ USE_TZ = True
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/auth/login"
-STATIC_URL = "static/"
-if DEBUG:
-    STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, "static"),
-    ]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+# Static files
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 # Default primary key field type
