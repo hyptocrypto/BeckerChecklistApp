@@ -3,4 +3,3 @@ workers = 4
 threads = 4
 max_requests = 1000
 timeout = 30
-
