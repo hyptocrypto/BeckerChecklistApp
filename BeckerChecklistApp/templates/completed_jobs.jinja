@@ -8,18 +8,36 @@
         <tr>
           <th>Name</th>
           <th>Description</th>
+            {% if request.user.is_superuser %}
+                <th>User</th>
+            {% endif %}
           <th>Completed Date</th>
         </tr>
       </thead>
       <tbody>
         {% for job in completed_jobs %}
-        <tr>
+            {% if request.user.is_superuser %}
+                <tr class="click-row" data-href="/admin/checklist/completedjob/{{job.pk}}/change">
+            {% else %}
+                <tr>
+            {% endif %}
           <td>{{ job.job.name }}</td>
           <td>{{ job.job.description }}</td>
+            {% if request.user.is_superuser %}
+                <td>{{ job.user }}</td>
+            {% endif %}
           <td>{{localtime(job.created_at).strftime('%Y-%m-%d %H:%M') }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  <script>
+  const rows = document.querySelectorAll('.click-row');
+  rows.forEach(row => {
+    row.addEventListener('click', () => {
+      window.location = row.getAttribute('data-href');
+    });
+  });
+</script>
 {% endblock %}

@@ -37,13 +37,13 @@ class JobDetailView(DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        user = self.request.user
+        user = request.user
         data = json.loads(self.request.body)
         # Parse job and out job_items
         job = Job.objects.filter(pk=data.get("job_id")).first()
         job_item_data = data.get("job_items_data").items()
-        job_items = JobItem.objects.filter(
-            pk__in=[k.split("-")[-1] for k, _ in job_item_data]
+        completed_job_items = JobItem.objects.filter(
+            pk__in=[k.split("-")[-1] for k, v in job_item_data if v]
         )
         # Create completed job and items
         completed_job = CompletedJob.objects.create(
@@ -53,7 +53,7 @@ class JobDetailView(DetailView):
         CompletedJobItem.objects.bulk_create(
             [
                 CompletedJobItem(user=user, completed_job=completed_job, job_item=j)
-                for j in job_items
+                for j in completed_job_items
             ]
         )
         return redirect(self.request.path_info)
