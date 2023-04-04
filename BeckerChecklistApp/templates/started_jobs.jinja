@@ -1,0 +1,28 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+  <div class="container">
+    <h1>Jobs</h1>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td>{{ job.job.name }}</td>
+          <td>{{ job.job.description }}</td>
+          <td>
+            <a style="margin-bottom: 5px;" href="/jobs/{{job.pk}}" class="btn btn-sm btn-primary">View</a>
+            <a href="/delete_started_job/{{job.pk}}" class="btn btn-sm btn-danger">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

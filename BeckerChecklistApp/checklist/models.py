@@ -83,6 +83,7 @@ class CompletedJobItem(BaseModel):
 class CompletedJob(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     started_job = models.ForeignKey(StartedJob, on_delete=models.CASCADE)
+    check_list_completed = models.BooleanField(default=False)
 
     def __repr__(self):
         return f"Completed({self.job}) - {self.user}"

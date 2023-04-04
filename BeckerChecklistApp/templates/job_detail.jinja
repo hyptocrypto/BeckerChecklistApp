@@ -22,13 +22,13 @@
           <td>{{ job_item.name }}</td>
           <td>{{ job_item.description }}</td>
           <td>
-            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="completed" onclick="updateJobItem({{job_item.pk}}, this.checked)">
+            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="completed" onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%} checked {% endif %}>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    <a href="#" class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</a>
+    <a class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</a>
 
 
 	<script>
@@ -87,10 +87,10 @@
                   'Content-Type': 'application/json',
                   'X-CSRFToken': '{{ csrf_token }}'
               },
-              body: JSON.stringify({ job_items_data: job_items_data, job_id: "{{started_job.job.pk}}" })
+              body: JSON.stringify({ job_items_data: job_items_data, started_job_id: "{{started_job.pk}}" })
               })
               .then(data => {
-                  window.location.replace("/")
+                  window.location.replace("/completed_jobs")
               })
               .catch(error => console.error(error));
             }

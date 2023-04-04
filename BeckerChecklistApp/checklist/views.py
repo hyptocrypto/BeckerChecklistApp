@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from .models import Job, JobItem, StartedJob, CompletedJob, CompletedJobItem
 import json
 
@@ -27,7 +27,7 @@ class CompletedJobListView(LoginRequiredMixin, ListView):
 class StartedJobListView(LoginRequiredMixin, ListView):
     model = CompletedJob
     template_name = "started_jobs.jinja"
-    context_object_name = "started_jobs"
+    context_object_name = "jobs"
 
     def get_queryset(self):
         if self.request.user.is_superuser:
@@ -46,21 +46,20 @@ class StartedJobListView(LoginRequiredMixin, ListView):
 class UpdateStartedJob(LoginRequiredMixin, View):
     def post(self, request, pk):
         user = request.user
-        started_job = StartedJob.objects.filter(pk=pk)
+        started_job = StartedJob.objects.get(pk=pk)
         data = json.loads(self.request.body)
         if client_name := data.get("client_name"):
-            started_job.update(client_name=client_name)
+            started_job.client_name = client_name
+            started_job.save()
         if job_item_id := data.get("job_item_id"):
             if data.get("complete"):
                 CompletedJobItem.objects.create(
-                    started_job=started_job, job_item_id=job_item_id
+                    started_job=started_job, job_item_id=job_item_id, user=user
                 )
             if not data.get("complete"):
-                completed_job_item = CompletedJobItem.objects.filter(
+                CompletedJobItem.objects.get(
                     started_job=started_job, job_item_id=job_item_id, user=user
-                ).first()
-                completed_job_item.delete()
-        print(data)
+                ).delete()
         return HttpResponse(200)
 
 
@@ -84,26 +83,20 @@ class StartedJoblView(LoginRequiredMixin, TemplateView):
         context["started_job"] = self.started_job
         job_items = JobItem.objects.filter(job=self.started_job.job).all()
         context["job_items"] = job_items
+        completed_job_items = CompletedJobItem.objects.values_list(
+            "job_item_id", flat=True
+        ).filter(user=request.user, started_job=self.started_job)
+        context["completed_job_items"] = completed_job_items
         return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         user = request.user
         data = json.loads(self.request.body)
-        # Parse job and out job_items
-        job = Job.objects.filter(pk=data.get("job_id")).first()
+        job = StartedJob.objects.get(pk=data.get("started_job_id"))
         job_item_data = data.get("job_items_data").items()
-        completed_job_items = JobItem.objects.filter(
-            pk__in=[k.split("-")[-1] for k, v in job_item_data if v]
-        )
-        # Create completed job and items
         completed_job = CompletedJob.objects.create(
-            user=user, job=job, check_list_completed=all([v for _, v in job_item_data])
+            user=user,
+            started_job=job,
+            check_list_completed=all([v for _, v in job_item_data]),
         )
-        # Bulk create job items
-        CompletedJobItem.objects.bulk_create(
-            [
-                CompletedJobItem(user=user, completed_job=completed_job, job_item=j)
-                for j in completed_job_items
-            ]
-        )
-        return redirect(self.request.path_info)
+        return HttpResponse(200)
