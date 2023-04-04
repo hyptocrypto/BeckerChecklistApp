@@ -28,9 +28,15 @@ SECRET_KEY = "django-insecure-tr$(ps-d-fbz*@(y90)*gazn_q#mi_b3h#tljx276v0w$up%01
 LOCAL = os.environ.get("LOCAL")
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "https://becker-app-gecb6vttdq-uc.a.run.app",
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+]
 CSRF_TRUSTED_ORIGINS = ["https://becker-app-gecb6vttdq-uc.a.run.app"]
 
+test_bool = True
 
 # Application definition
 
@@ -139,7 +145,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
+
 LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/auth/login"
 LOGOUT_REDIRECT_URL = "/auth/login"
 
 # Static files

@@ -2,8 +2,12 @@
 
 {% block content %}
   <div class="container">
-    <h1>{{ job.name }}</h1>
-    <p>{{ job.description }}</p>
+    <h1>{{ started_job.job.name }}</h1>
+    <p>{{ started_job.job.description }}</p>
+    <div style="margin-bottom: 10px;">
+      <label for="client-name">Client Name:</label>
+      <input id="client-name" type="text" name="client-name" value="{{started_job.client_name}}" onblur="updateClientName()">
+    </div>
     <table class="table">
       <thead>
         <tr>
@@ -18,7 +22,7 @@
           <td>{{ job_item.name }}</td>
           <td>{{ job_item.description }}</td>
           <td>
-            <input class="job-item" id="{{job_item.name}}-{{job_item.pk}}" onclick="saveJobItemState(this.id, this.checked)" type="checkbox" name="completed">
+            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="completed" onclick="updateJobItem({{job_item.pk}}, this.checked)">
           </td>
         </tr>
         {% endfor %}
@@ -28,10 +32,37 @@
 
 
 	<script>
-        window.addEventListener('load', function () {
-            updateJobItemsStates();
-        })
-        function procJobItmes() {
+        function updateJobItem(jobItemId, isChecked) {
+          fetch(`/update_job/{{ started_job.pk }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+              "job_item_id": jobItemId, 
+              "complete": isChecked 
+              })
+            })
+            .catch(error => console.error(error));
+        };
+        function updateClientName() {
+          var clientNameInput = document.getElementById("client-name");
+          var clientName = clientNameInput.value.trim();
+          fetch(`/update_job/{{ started_job.pk }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+
+              "client_name": clientName
+              })
+            })
+            .catch(error => console.error(error));
+        };
+        function parseJobItmes() {
             var job_items = document.querySelectorAll('.job-item');
             var items_data = {};
             
@@ -43,39 +74,27 @@
         }
         
         function jobComplete() {
-            const job_items_data = procJobItmes()
-            
-            fetch(`/jobs/{{ job.pk }}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ job_items_data: job_items_data, job_id: "{{job.pk}}" })
-            })
-            .then(data => {
-                localStorage.clear();
-                window.location.replace("/")
-            })
-            .catch(error => console.error(error));
-        }
-        function saveJobItemState(jobItemId, checked) {
-            localStorage.setItem(jobItemId, checked);
-        }
-        function updateJobItemsStates() {
-            const jobItems = document.querySelectorAll('.job-item');
-            jobItems.forEach((jobItem) => {
-                const itemId = jobItem.getAttribute('id');
-                const itemState = localStorage.getItem(itemId);
-                if (itemState != null){
-                    if (itemState === 'true') {
-                        jobItem.checked = true;
-                    } else {
-                        jobItem.checked = false;
-                    };
-                };
-            });
+            var clientName = document.getElementById("client-name").value;
+            if (clientName.trim() === "") {
+              alert("Please enter a client name.");
+              return;
+            } else {
+              const job_items_data = parseJobItmes()
+              
+              fetch(`/jobs/{{ started_job.job.pk }}/`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ job_items_data: job_items_data, job_id: "{{started_job.job.pk}}" })
+              })
+              .then(data => {
+                  window.location.replace("/")
+              })
+              .catch(error => console.error(error));
             }
+        }
     </script>
   </div>
 {% endblock %}
