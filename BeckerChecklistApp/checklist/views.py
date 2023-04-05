@@ -84,6 +84,23 @@ class DeleteStartedJob(LoginRequiredMixin, View):
             return HttpResponseRedirect("/started_jobs")
 
 
+class CompletedJobSummary(LoginRequiredMixin, TemplateView):
+    template_name = "completed_job_summary.jinja"
+
+    def get(self, request, pk, **kwargs):
+        context = super().get_context_data(**kwargs)
+        completed_job = CompletedJob.objects.get(pk=pk)
+        started_job = completed_job.started_job
+        context["started_job"] = started_job
+        job_items = JobItem.objects.filter(job=started_job.job).all()
+        context["job_items"] = job_items
+        completed_job_items = CompletedJobItem.objects.values_list(
+            "job_item_id", flat=True
+        ).filter(user=request.user, started_job=started_job)
+        context["completed_job_items"] = completed_job_items
+        return render(request, self.template_name, context)
+
+
 class StartedJoblView(LoginRequiredMixin, TemplateView):
     """Info page for started job"""
 
@@ -103,13 +120,11 @@ class StartedJoblView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        data = self.request.POST
         job = StartedJob.objects.get(pk=kwargs.get("pk"))
-        job.all_items_complete()
         CompletedJob.objects.create(
             user=user,
             started_job=job,
             check_list_completed=job.all_items_complete(),
         )
-        messages.success(request, "Job Complete!")
+        messages.success(request, "Success! Job Complete!")
         return HttpResponseRedirect("/completed_jobs")

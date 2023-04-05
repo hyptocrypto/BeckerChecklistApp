@@ -6,10 +6,11 @@
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <h1>{{ started_job.job.name }}</h1>
     <p>{{ started_job.job.description }}</p>
-    <div style="margin-bottom: 10px;">
-      <label for="client-name">Client Name:</label>
-      <input id="client-name" type="text" name="client-name" value="{{started_job.client_name}}"
-        onblur="updateClientName()">
+    <hr>
+    <div class="form-group">
+      <label for="client-name">Client Name</label>
+      <input class="form-control" id="client-name" type="text" name="client-name" value="{{started_job.client_name}}"
+        onblur="updateClientName()" style="width: 40%">
     </div>
     <table class="table">
       <thead>
@@ -25,7 +26,7 @@
           <td>{{ job_item.name }}</td>
           <td>{{ job_item.description }}</td>
           <td>
-            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
+            <input class="job-item larger" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
               onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%}
               checked{% endif %}>
           </td>
@@ -33,7 +34,7 @@
         {% endfor %}
       </tbody>
     </table>
-    <button type=submit class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</button>
+    <button type=submit class="btn btn-primary btn-lg" onclick="event.preventDefault(); jobComplete()">Job Completed</button>
   </form>
 
   <script>
@@ -81,25 +82,11 @@
     function jobComplete() {
       var clientName = document.getElementById("client-name").value;
       if (clientName.trim() === "") {
-        alert("Please enter a client name.");
+        alert("Error. Please enter a client name to complete job.");
         return;
       } else {
         const form = document.querySelector(".job-form")
         form.submit()
-        //const job_items_data = parseJobItmes()
-
-        // fetch(`/jobs/{{ started_job.job.pk }}/`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'X-CSRFToken': '{{ csrf_token }}'
-        //   },
-        //   body: JSON.stringify({ job_items_data: job_items_data, started_job_id: "{{started_job.pk}}" })
-        // })
-        //   .then(data => {
-        //     window.location.replace("/completed_jobs")
-        //   })
-        //   .catch(error => console.error(error));
       }
     }
   </script>

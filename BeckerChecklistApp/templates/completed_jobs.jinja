@@ -18,7 +18,7 @@
       <tbody>
         {% for job in completed_jobs %}
             {% if request.user.is_superuser %}
-                <tr class="click-row" data-href="/admin/checklist/completedjob/{{job.pk}}/change">
+                <tr class="click-row" data-href="/job_summary/{{job.pk}}">
             {% else %}
                 <tr>
             {% endif %}
