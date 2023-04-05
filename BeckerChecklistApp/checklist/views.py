@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -91,12 +92,13 @@ class StartedJoblView(LoginRequiredMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        data = json.loads(self.request.body)
-        job = StartedJob.objects.get(pk=data.get("started_job_id"))
-        job_item_data = data.get("job_items_data").items()
-        completed_job = CompletedJob.objects.create(
+        data = self.request.POST
+        job = StartedJob.objects.get(pk=kwargs.get("pk"))
+        job.all_items_complete()
+        CompletedJob.objects.create(
             user=user,
             started_job=job,
-            check_list_completed=all([v for _, v in job_item_data]),
+            check_list_completed=job.all_items_complete(),
         )
-        return HttpResponse(200)
+        messages.success(request, "Job Complete!")
+        return HttpResponseRedirect("/completed_jobs")

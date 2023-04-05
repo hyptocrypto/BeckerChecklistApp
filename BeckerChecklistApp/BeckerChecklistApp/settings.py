@@ -64,12 +64,30 @@ MIDDLEWARE = [
 ROOT_URLCONF = "BeckerChecklistApp.urls"
 
 
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: "alert-secondary",
+    messages.INFO: "alert-info",
+    messages.SUCCESS: "alert-success",
+    messages.WARNING: "alert-warning",
+    messages.ERROR: "alert-danger",
+}
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.jinja2.Jinja2",
         "DIRS": {TEMPLATE_DIR},
         "APP_DIRS": True,
-        "OPTIONS": {"environment": "BeckerChecklistApp.jinja2.environment"},
+        "OPTIONS": {
+            "environment": "BeckerChecklistApp.jinja2.environment",
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
     },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",

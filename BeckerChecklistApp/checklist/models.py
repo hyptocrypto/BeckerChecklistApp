@@ -58,12 +58,11 @@ class StartedJob(BaseModel):
     def all_items_complete(self):
         """Check if all possible CompletedJobItems exist"""
 
-        job_items = JobItem.objects.filter(
-            job=self.job
-        )  # All job items for this job type
-        completed_job_items = CompletedJobItem.objects.filter(started_job=self)
-
-        return sorted(job_items) == sorted([j.job_item for j in completed_job_items])
+        job_items = JobItem.objects.values_list("pk", flat=True).filter(job=self.job)
+        completed_job_items = CompletedJobItem.objects.values_list(
+            "job_item_id", flat=True
+        ).filter(started_job=self)
+        return sorted(job_items) == sorted(completed_job_items)
 
 
 class CompletedJobItem(BaseModel):

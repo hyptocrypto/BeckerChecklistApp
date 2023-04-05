@@ -1,12 +1,15 @@
 {% extends 'base.jinja' %}
 
 {% block content %}
-  <div class="container">
+<div class="container">
+  <form class="job-form" id="job-form" method="POST">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <h1>{{ started_job.job.name }}</h1>
     <p>{{ started_job.job.description }}</p>
     <div style="margin-bottom: 10px;">
       <label for="client-name">Client Name:</label>
-      <input id="client-name" type="text" name="client-name" value="{{started_job.client_name}}" onblur="updateClientName()">
+      <input id="client-name" type="text" name="client-name" value="{{started_job.client_name}}"
+        onblur="updateClientName()">
     </div>
     <table class="table">
       <thead>
@@ -22,80 +25,83 @@
           <td>{{ job_item.name }}</td>
           <td>{{ job_item.description }}</td>
           <td>
-            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="completed" onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%} checked {% endif %}>
+            <input class="job-item" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
+              onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%}
+              checked{% endif %}>
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    <a class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</a>
+    <button type=submit class="btn btn-primary btn-lg" onclick="jobComplete()">Job Completed</button>
+  </form>
 
+  <script>
+    function updateJobItem(jobItemId, isChecked) {
+      fetch(`/update_job/{{ started_job.pk }}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          "job_item_id": jobItemId,
+          "complete": isChecked
+        })
+      })
+        .catch(error => console.error(error));
+    };
+    function updateClientName() {
+      var clientNameInput = document.getElementById("client-name");
+      var clientName = clientNameInput.value.trim();
+      fetch(`/update_job/{{ started_job.pk }}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
 
-	<script>
-        function updateJobItem(jobItemId, isChecked) {
-          fetch(`/update_job/{{ started_job.pk }}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-              "job_item_id": jobItemId, 
-              "complete": isChecked 
-              })
-            })
-            .catch(error => console.error(error));
-        };
-        function updateClientName() {
-          var clientNameInput = document.getElementById("client-name");
-          var clientName = clientNameInput.value.trim();
-          fetch(`/update_job/{{ started_job.pk }}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
+          "client_name": clientName
+        })
+      })
+        .catch(error => console.error(error));
+    };
+    function parseJobItmes() {
+      var job_items = document.querySelectorAll('.job-item');
+      var items_data = {};
 
-              "client_name": clientName
-              })
-            })
-            .catch(error => console.error(error));
-        };
-        function parseJobItmes() {
-            var job_items = document.querySelectorAll('.job-item');
-            var items_data = {};
-            
-            for (var i = 0; i < job_items.length; i++) {
-                var job_item = job_items[i]
-                items_data[job_item.id] = job_item.checked 
-            }
-            return items_data
-        }
-        
-        function jobComplete() {
-            var clientName = document.getElementById("client-name").value;
-            if (clientName.trim() === "") {
-              alert("Please enter a client name.");
-              return;
-            } else {
-              const job_items_data = parseJobItmes()
-              
-              fetch(`/jobs/{{ started_job.job.pk }}/`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': '{{ csrf_token }}'
-              },
-              body: JSON.stringify({ job_items_data: job_items_data, started_job_id: "{{started_job.pk}}" })
-              })
-              .then(data => {
-                  window.location.replace("/completed_jobs")
-              })
-              .catch(error => console.error(error));
-            }
-        }
-    </script>
-  </div>
+      for (var i = 0; i < job_items.length; i++) {
+        var job_item = job_items[i]
+        items_data[job_item.id] = job_item.checked
+      }
+      return items_data
+    }
+
+    function jobComplete() {
+      var clientName = document.getElementById("client-name").value;
+      if (clientName.trim() === "") {
+        alert("Please enter a client name.");
+        return;
+      } else {
+        const form = document.querySelector(".job-form")
+        form.submit()
+        //const job_items_data = parseJobItmes()
+
+        // fetch(`/jobs/{{ started_job.job.pk }}/`, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'X-CSRFToken': '{{ csrf_token }}'
+        //   },
+        //   body: JSON.stringify({ job_items_data: job_items_data, started_job_id: "{{started_job.pk}}" })
+        // })
+        //   .then(data => {
+        //     window.location.replace("/completed_jobs")
+        //   })
+        //   .catch(error => console.error(error));
+      }
+    }
+  </script>
+</div>
 {% endblock %}
-
