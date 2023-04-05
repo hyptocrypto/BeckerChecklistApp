@@ -85,7 +85,7 @@ class CompletedJob(BaseModel):
     check_list_completed = models.BooleanField(default=False)
 
     def __repr__(self):
-        return f"Completed({self.job}) - {self.user}"
+        return f"Completed({self.started_job}) - {self.user}"
 
     def __str__(self):
-        return f"Completed({self.job}) - {self.user}"
+        return f"Completed({self.started_job}) - {self.user}"

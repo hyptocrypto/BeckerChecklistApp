@@ -73,6 +73,17 @@ class CreateNewJob(LoginRequiredMixin, View):
         return HttpResponseRedirect(f"/jobs/{started_job.pk}")
 
 
+class DeleteStartedJob(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        try:
+            StartedJob.objects.get(pk=pk).delete()
+            messages.success(request, "Success! Job deleted!")
+            return HttpResponseRedirect("/started_jobs")
+        except Exception as e:
+            messages.error(request, "Oh no! Error deleting job!")
+            return HttpResponseRedirect("/started_jobs")
+
+
 class StartedJoblView(LoginRequiredMixin, TemplateView):
     """Info page for started job"""
 
