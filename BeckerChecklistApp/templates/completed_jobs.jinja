@@ -23,7 +23,7 @@
         {% if request.user.is_superuser %}
         <td>{{ job.user }}</td>
         {% endif %}
-        <td>{{job.started_job.client_name}}</td>
+        <td>{{job.started_job.client}}</td>
         <td>{{localtime(job.created_at).strftime('%Y-%m-%d %H:%M') }}</td>
       </tr>
       {% endfor %}

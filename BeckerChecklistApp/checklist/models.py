@@ -10,6 +10,17 @@ class BaseModel(models.Model):
         abstract = True
 
 
+class Client(BaseModel):
+    name = models.CharField(max_length=100)
+    info = models.TextField(null=True, blank=True)
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
+
+
 class Job(BaseModel):
     """The abstract definition of a job"""
 
@@ -28,7 +39,7 @@ class JobItem(BaseModel):
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=False, blank=False)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     def __repr__(self):
         return f"{self.job.name}({self.name})"
@@ -42,14 +53,14 @@ class StartedJob(BaseModel):
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client_name = models.CharField(max_length=200, default="")
+    client = models.ForeignKey(Client, null=True, on_delete=models.CASCADE)
     notes = models.TextField(max_length=1000, null=True, blank=True)
 
     def __repr__(self):
-        return f"{self.job.name}({self.user}-{self.client_name})"
+        return f"{self.job.name}({self.user}-{self.client})"
 
     def __str__(self):
-        return f"{self.job.name}({self.user}-{self.client_name})"
+        return f"{self.job.name}({self.user}-{self.client})"
 
     def is_complete(self):
         """Check if completed job exists for this started job"""

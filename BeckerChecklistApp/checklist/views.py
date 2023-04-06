@@ -3,7 +3,7 @@ from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.shortcuts import render
-from .models import Job, JobItem, StartedJob, CompletedJob, CompletedJobItem
+from .models import Job, JobItem, StartedJob, CompletedJob, CompletedJobItem, Client
 import json
 
 
@@ -52,8 +52,13 @@ class UpdateStartedJob(LoginRequiredMixin, View):
         started_job = StartedJob.objects.get(pk=pk)
         data = json.loads(self.request.body)
         if client_name := data.get("client_name"):
-            started_job.client_name = client_name
-            started_job.save()
+            if client := Client.objects.filter(name=client_name).first():
+                started_job.client = client
+                started_job.save()
+            else:
+                client = Client.objects.create(name=client_name)
+                started_job.client = client
+                started_job.save()
         if notes := data.get("notes"):
             started_job.notes = notes
             started_job.save()
@@ -113,14 +118,19 @@ class StartedJobView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, **kwargs):
         context = super().get_context_data(**kwargs)
-        self.started_job = StartedJob.objects.get(pk=kwargs.get("pk"))
-        context["started_job"] = self.started_job
-        job_items = JobItem.objects.filter(job=self.started_job.job).all()
+        started_job = StartedJob.objects.get(pk=kwargs.get("pk"))
+        context["started_job"] = started_job
+        job_items = JobItem.objects.filter(job=started_job.job).all()
         context["job_items"] = job_items
         completed_job_items = CompletedJobItem.objects.values_list(
             "job_item_id", flat=True
-        ).filter(user=request.user, started_job=self.started_job)
+        ).filter(user=request.user, started_job=started_job)
         context["completed_job_items"] = completed_job_items
+        clients = Client.objects.values_list("name", flat=True).all()
+        context["clients"] = [i for i in clients]
+        context["current_client"] = (
+            started_job.client.name if started_job.client else None
+        )
         return render(request, self.template_name, context)
 
     def post(self, request, pk, **kwargs):
