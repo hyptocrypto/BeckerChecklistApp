@@ -43,6 +43,7 @@ class StartedJob(BaseModel):
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     client_name = models.CharField(max_length=200, default="")
+    notes = models.TextField(max_length=1000, null=True, blank=True)
 
     def __repr__(self):
         return f"{self.job.name}({self.user}-{self.client_name})"

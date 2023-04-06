@@ -54,6 +54,9 @@ class UpdateStartedJob(LoginRequiredMixin, View):
         if client_name := data.get("client_name"):
             started_job.client_name = client_name
             started_job.save()
+        if notes := data.get("notes"):
+            started_job.notes = notes
+            started_job.save()
         if job_item_id := data.get("job_item_id"):
             if data.get("complete"):
                 CompletedJobItem.objects.create(

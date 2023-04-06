@@ -109,6 +109,18 @@ class TestJobs:
         UpdateStartedJob.as_view()(request, started_job.pk)
         assert StartedJob.objects.first().client_name == "Test Client"
 
+    def test_client_update(self):
+        """Test the update view to update the notes"""
+        started_job = self._start_job()
+        request = self._make_request(
+            url_name="update_started_job",
+            obj_pk=started_job.pk,
+            data={"notes": "These are some test notes"},
+            request_type=RequestType.POST,
+        )
+        UpdateStartedJob.as_view()(request, started_job.pk)
+        assert StartedJob.objects.first().notes == "These are some test notes"
+
     def test_update_job_complete_item(self):
         """Test the update view to complete a job item"""
         completed_item, _ = self._complete_job_item()

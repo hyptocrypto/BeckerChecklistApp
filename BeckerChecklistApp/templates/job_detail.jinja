@@ -10,7 +10,7 @@
     <div class="form-group">
       <label for="client-name">Client Name</label>
       <input class="form-control" id="client-name" type="text" name="client-name" value="{{started_job.client_name}}"
-        onblur="updateClientName()" style="width: 40%">
+        onblur="updateClientName()" style="width: 40vh;">
     </div>
     <table class="table">
       <thead>
@@ -34,7 +34,12 @@
         {% endfor %}
       </tbody>
     </table>
-    <button type=submit class="btn btn-primary btn-lg" onclick="event.preventDefault(); jobComplete()">Job Completed</button>
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea class="form-control" id="notes" type="text" name="notes"
+        onblur="updateNotes()" style="margin-bottom: 10px; width: 40vh" rows="4">{{started_job.notes}}</textarea>
+    </div>
+    <button style="margin-bottom: 80px;" type=submit class="btn btn-primary btn-lg" onclick="event.preventDefault(); jobComplete()">Job Completed</button>
   </form>
 
   <script>
@@ -64,6 +69,22 @@
         body: JSON.stringify({
 
           "client_name": clientName
+        })
+      })
+        .catch(error => console.error(error));
+    };
+    function updateNotes() {
+      var notesInput = document.getElementById("notes");
+      var notes = notesInput.value.trim();
+      fetch(`/update_job/{{ started_job.pk }}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+
+          "notes": notes
         })
       })
         .catch(error => console.error(error));
