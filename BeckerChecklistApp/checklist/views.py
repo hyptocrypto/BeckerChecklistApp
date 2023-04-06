@@ -1,7 +1,7 @@
-from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.shortcuts import render
 from .models import Job, JobItem, StartedJob, CompletedJob, CompletedJobItem
 import json
@@ -101,7 +101,7 @@ class CompletedJobSummary(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
 
-class StartedJoblView(LoginRequiredMixin, TemplateView):
+class StartedJobView(LoginRequiredMixin, TemplateView):
     """Info page for started job"""
 
     template_name = "job_detail.jinja"
@@ -118,9 +118,9 @@ class StartedJoblView(LoginRequiredMixin, TemplateView):
         context["completed_job_items"] = completed_job_items
         return render(request, self.template_name, context)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, pk, **kwargs):
         user = request.user
-        job = StartedJob.objects.get(pk=kwargs.get("pk"))
+        job = StartedJob.objects.get(pk=pk)
         CompletedJob.objects.create(
             user=user,
             started_job=job,
