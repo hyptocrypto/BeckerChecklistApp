@@ -25,12 +25,18 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates/")
 SECRET_KEY = "django-insecure-tr$(ps-d-fbz*@(y90)*gazn_q#mi_b3h#tljx276v0w$up%01"
 
 # SECURITY WARNING: don't run with debug turned on in production!
+TESTING = os.environ.get("TESTING")
 LOCAL = os.environ.get("LOCAL")
-DEBUG = True
+DEBUG = LOCAL
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "becker-app-gecb6vttdq-uc.a.run.app",
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+    "192.168.1.21",
+]
 CSRF_TRUSTED_ORIGINS = ["https://becker-app-gecb6vttdq-uc.a.run.app"]
-
 
 # Application definition
 
@@ -57,13 +63,17 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "BeckerChecklistApp.urls"
 
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.jinja2.Jinja2",
         "DIRS": {TEMPLATE_DIR},
         "APP_DIRS": True,
-        "OPTIONS": {"environment": "BeckerChecklistApp.jinja2.environment"},
+        "OPTIONS": {
+            "environment": "BeckerChecklistApp.jinja2.environment",
+            "context_processors": [
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
     },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -83,9 +93,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "BeckerChecklistApp.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-if LOCAL:
+if LOCAL or TESTING:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -105,9 +113,6 @@ else:
     }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -124,9 +129,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "US/Eastern"
@@ -136,10 +138,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
 LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/auth/login"
 LOGOUT_REDIRECT_URL = "/auth/login"
 
 # Static files
@@ -151,9 +151,5 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

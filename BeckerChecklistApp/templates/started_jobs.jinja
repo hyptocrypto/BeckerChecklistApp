@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="container">
-    <h1>Jobs</h1>
+    <h1>Current Jobs</h1>
     <table class="table table-hover">
       <thead>
         <tr>
@@ -14,10 +14,11 @@
       <tbody>
         {% for job in jobs %}
         <tr>
-          <td>{{ job.name }}</td>
-          <td>{{ job.description }}</td>
+          <td>{{ job.job.name }}</td>
+          <td>{{ job.job.description }}</td>
           <td>
-            <a href="create_new_job/{{job.pk}}" class="btn btn-sm btn-primary">Start</a>
+            <a style="margin-bottom: 5px;" href="/jobs/{{job.pk}}" class="btn btn-sm btn-primary">View</a>
+            <a href="/delete_job/{{job.pk}}" class="btn btn-sm btn-danger">Delete</a>
           </td>
         </tr>
         {% endfor %}

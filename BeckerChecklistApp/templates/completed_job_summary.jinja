@@ -1,0 +1,43 @@
+{% extends 'base.jinja' %}
+
+{% block content %}
+<div class="container">
+  <form class="job-form" id="job-form" method="POST">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <h1>Completed({{ started_job.job.name }})</h1>
+    <h4>User: {{ started_job.user }}</h4>
+    <p>{{ started_job.job.description }}</p>
+    <hr>
+    <div class="form-group">
+      <label for="client-name">Client Name</label>
+      <input class="form-control" id="client-name" type="text" name="client-name" value="{{started_job.client_name}}" style="width: 40vh;" disabled>
+    </div>
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea class="form-control" id="notes" type="text" name="notes" style="margin-bottom: 10px; width: 40vh;" rows="4" disabled>{{started_job.notes}}</textarea>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job_item in job_items %}
+        <tr>
+          <td>{{ job_item.name }}</td>
+          <td>{{ job_item.description }}</td>
+          <td>
+            <input class="job-item larger" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
+              onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%}
+              checked{% endif %} disabled>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </form>
+</div>
+{% endblock %}
