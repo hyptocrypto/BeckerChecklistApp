@@ -20,9 +20,11 @@ class CompletedJobListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return CompletedJob.objects.all()
+            return CompletedJob.objects.all().order_by("-created_at")
         # Override the get_queryset method to filter by the current user
-        return CompletedJob.objects.filter(user=self.request.user)
+        return CompletedJob.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
 
 
 class StartedJobListView(LoginRequiredMixin, ListView):
