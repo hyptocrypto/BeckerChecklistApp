@@ -93,7 +93,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "BeckerChecklistApp.wsgi.application"
 
 
-if LOCAL:
+if LOCAL or TESTING:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
