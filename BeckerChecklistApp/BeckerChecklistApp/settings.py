@@ -29,14 +29,13 @@ LOCAL = os.environ.get("LOCAL")
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "https://becker-app-gecb6vttdq-uc.a.run.app",
+    "becker-app-gecb6vttdq-uc.a.run.app",
     "localhost",
     "0.0.0.0",
     "127.0.0.1",
+    "192.168.1.21",
 ]
 CSRF_TRUSTED_ORIGINS = ["https://becker-app-gecb6vttdq-uc.a.run.app"]
-
-test_bool = True
 
 # Application definition
 
