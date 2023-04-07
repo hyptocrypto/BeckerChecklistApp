@@ -11,7 +11,7 @@ class BaseModel(models.Model):
 
 
 class Client(BaseModel):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     info = models.TextField(null=True, blank=True)
 
     def __repr__(self):
@@ -25,7 +25,7 @@ class Job(BaseModel):
     """The abstract definition of a job"""
 
     name = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(max_length=500)
 
     def __repr__(self):
         return f"{self.name}"
@@ -39,7 +39,7 @@ class JobItem(BaseModel):
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, null=False, blank=False)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(max_length=500, null=True, blank=True)
 
     def __repr__(self):
         return f"{self.job.name}({self.name})"

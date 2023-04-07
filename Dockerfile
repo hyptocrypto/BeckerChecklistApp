@@ -19,5 +19,6 @@ RUN cd BeckerChecklistApp
 CMD python manage.py migrate \
     && python manage.py collectstatic --noinput \
     && python manage.py ensure_superuser \
+    && python manage.py gen_data \
     && exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 2 --max-requests 1000 --timeout 30 BeckerChecklistApp.wsgi:application
 
