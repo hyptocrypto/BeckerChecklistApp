@@ -8,10 +8,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         user = User.objects.first()
         desc_text = "This is some filler info about a job item"
-        Client.objects.create(name="The Millers"),
-        Client.objects.create(name="Bob and Jue"),
-        Client.objects.create(name="Stratford LLC"),
-        Client.objects.create(name="Wellington Reserve"),
+        Client.objects.create(name="The Millers")
+        Client.objects.create(name="Bob and Jue")
+        Client.objects.create(name="Stratford LLC")
+        Client.objects.create(name="Wellington Reserve")
         for i in range(5):
             job = Job.objects.create(
                 name=f"Test Job {i}",
