@@ -1,72 +1,81 @@
+{% from 'macros.jinja' import render_description %}
+
 {% extends 'base.jinja' %}
 
 {% block content %}
-<div class="container">
-    <h1>{{ started_job.job.name }}</h1>
-    <p>{{ started_job.job.description }}</p>
-    <hr>
-    <div class="client-dropdown" id="client-dropdown">
-      <button class="btn btn-secondary dropdown-toggle bg-primary" type="button" id="dropdownMenuButton"
-        data-bs-toggle="dropdown" aria-expanded="false">{% if current_client %} {{current_client}} {% else %}Select
-        Client{% endif %}</button>
-      <div id="dropdown-menu" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-        {% for client in clients %}
-        <a onclick="return updateClient(this)" class="dropdown-item">{{client}}</a>
-        {% endfor %}
-        <hr class="dropdown-divider">
-        <div class="dropdown-item" onsubmit="return false;">
-          <div style="padding: 10px;" class="input-group mb-3">
-            <input id="new-client-input" type="text" class="form-control" placeholder="Add new option" aria-label="Add new option"
-              aria-describedby="button-addon2">
-            <button class="btn btn-outline-secondary" type="button" id="client-button"
-              onclick="addNewClient(this)">+</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div id="add-option-form" style="display:none;">
-      <div>
-        <div class="form-group">
-          <label for="new-option-input">New option:</label>
-          <input onkeydown="(e)=>e.preventDefault();" type="text" class="form-control" id="new-option-input">
+
+<div class="container">
+  <h1>{{ started_job.job.name }}</h1>
+  <p>{{ started_job.job.description }}</p>
+  <hr>
+  <div class="client-dropdown" id="client-dropdown">
+    <button class="btn btn-secondary dropdown-toggle bg-primary" type="button" id="dropdownMenuButton"
+      data-bs-toggle="dropdown" aria-expanded="false">{% if current_client %} {{current_client}} {% else %}Select
+      Client{% endif %}</button>
+    <div id="dropdown-menu" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      {% for client in clients %}
+      <a onclick="return updateClient(this)" class="dropdown-item">{{client}}</a>
+      {% endfor %}
+      <hr class="dropdown-divider">
+      <div class="dropdown-item" onsubmit="return false;">
+        <div style="padding: 10px;" class="input-group mb-3">
+          <input id="new-client-input" type="text" class="form-control" placeholder="Add new option"
+            aria-label="Add new option" aria-describedby="button-addon2">
+          <button style="margin-left: 4px; border-radius: 5px;" class="btn btn-outline-primary" type="button" id="client-button"
+            onclick="addNewClient(this)">+</button>
         </div>
-        <button type="submit" class="btn btn-primary">Add</button>
       </div>
     </div>
-    <table style="margin-top: 10px;" class="table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Completed</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for job_item in job_items %}
-        <tr>
-          <td>{{ job_item.name }}</td>
-          <td>{{ job_item.description }}</td>
-          <td>
-            <input class="job-item larger" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
-              onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%}
-              checked{% endif %}>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="form-group">
-      <label for="notes">Notes</label>
-      <textarea class="form-control" id="notes" type="text" name="notes" onblur="updateNotes()"
-        style="margin-bottom: 10px; width: 40vh" rows="4">{{started_job.notes}}</textarea>
+  </div>
+
+  <div id="add-option-form" style="display:none;">
+    <div>
+      <div class="form-group">
+        <label for="new-option-input">New option:</label>
+        <input onkeydown="(e)=>e.preventDefault();" type="text" class="form-control" id="new-option-input">
+      </div>
+      <button type="submit" class="btn btn-primary">Add</button>
     </div>
+  </div>
+  <table style="margin-top: 10px;" class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Completed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job_item in job_items %}
+      <tr>
+        <td>{{ job_item.name }}</td>
+        {{ render_description(job_item) }}
+        <td class="checkbox">
+          <input class="job-item larger" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
+            onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%} checked{%
+            endif %}>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="form-group">
+    <label for="notes">Notes</label>
+    <textarea class="form-control" id="notes" type="text" name="notes" onblur="updateNotes()"
+      style="margin-bottom: 10px; width: 40vh" rows="4">{{started_job.notes}}</textarea>
+  </div>
   <form class="job-form" id="job-form" method="POST">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <button style="margin-bottom: 80px;" type=submit class="btn btn-primary btn-lg"
       onclick="event.preventDefault(); jobComplete()">Job Completed</button>
   </form>
   <style>
+    .checkbox {
+      text-align: center;
+      vertical-align: middle;
+    }
+
     .dropdown-item.form-control {
       border: none;
       border-radius: 0;
@@ -84,13 +93,12 @@
   </style>
   <script>
     const newClientInput = document.getElementById("new-client-input");
-    newClientInput.addEventListener("keydown", function(event){
+    newClientInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.keyCode === 13) {
         addNewClient();
         const menubutton = document.getElementById("dropdownMenuButton").click();
       }
     })
-
     function addNewClient() {
       var button = document.getElementById("client-button")
       var input = button.previousElementSibling;
@@ -99,12 +107,12 @@
         var dropdownMenu = button.closest(".dropdown-menu");
         var all_options = dropdownMenu.querySelectorAll("a")
         for (let i = 0; i < all_options.length; i++) {
-            const op = all_options[i];
-            if (value === op.text) {
-                var selectButton = dropdownMenu.closest(".client-dropdown").querySelector(".dropdown-toggle");
-                selectButton.innerText = value;
-                return false;
-            }
+          const op = all_options[i];
+          if (value === op.text) {
+            var selectButton = dropdownMenu.closest(".client-dropdown").querySelector(".dropdown-toggle");
+            selectButton.innerText = value;
+            return false;
+          }
         }
         var newOption = document.createElement("a");
         newOption.classList.add("dropdown-item");

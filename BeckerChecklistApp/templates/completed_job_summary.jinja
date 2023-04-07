@@ -1,3 +1,4 @@
+{% from 'macros.jinja' import render_description %}
 {% extends 'base.jinja' %}
 
 {% block content %}
@@ -28,7 +29,7 @@
         {% for job_item in job_items %}
         <tr>
           <td>{{ job_item.name }}</td>
-          <td>{{ job_item.description }}</td>
+          {{ render_description(job_item) }}
           <td>
             <input class="job-item larger" id="{{job_item.pk}}" type="checkbox" name="{{job_item.pk}}-completed"
               onclick="updateJobItem({{job_item.pk}}, this.checked)" {% if job_item.pk in completed_job_items%}

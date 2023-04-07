@@ -1,3 +1,4 @@
+{% from 'macros.jinja' import render_description %}
 {% extends 'base.jinja' %}
 
 {% block content %}
@@ -15,7 +16,7 @@
         {% for job in jobs %}
         <tr>
           <td style="min-width: 15vh;">{{ job.job.name }}</td>
-          <td>{{ job.job.description }}</td>
+          {{render_description(job.job)}}
           <td>
             <a style="margin-bottom: 5px;" href="/jobs/{{job.pk}}" class="btn btn-sm btn-primary">View</a>
             <a href="/delete_job/{{job.pk}}" class="btn btn-sm btn-danger">Delete</a>
