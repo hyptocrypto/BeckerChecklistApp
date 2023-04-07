@@ -1,3 +1,4 @@
+{% from 'macros.jinja' import render_description %}
 {% extends 'base.jinja' %}
 
 {% block content %}
@@ -7,7 +8,6 @@
     <thead>
       <tr>
         <th style="min-width: 15vh;">Name</th>
-        <th style="word-wrap: break-word; max-width: 250px;">Description</th>
         {% if request.user.is_superuser %}
         <th>User</th>
         {% endif %}
@@ -19,7 +19,6 @@
       {% for job in completed_jobs %}
       <tr class="click-row" data-href="/job_summary/{{job.pk}}">
         <td>{{ job.started_job.job.name }}</td>
-        <td style="word-wrap: break-word; max-width: 250px;">{{ job.started_job.job.description }}</td>
         {% if request.user.is_superuser %}
         <td>{{ job.user }}</td>
         {% endif %}
