@@ -14,11 +14,10 @@
     </thead>
     <tbody>
       {% for job in jobs %}
-      <tr>
+      <tr class="click-row" data-href="/jobs/{{job.pk}}">
         <td style="min-width: 15vh;">{{ job.job.name }}</td>
         <td>{{job.client }}</td>
         <td>
-          <a style="margin-bottom: 5px;" href="/jobs/{{job.pk}}" class="btn btn-sm btn-primary">View</a>
           <a href="/delete_job/{{job.pk}}" class="btn btn-sm btn-danger">Delete</a>
         </td>
       </tr>
@@ -26,4 +25,12 @@
     </tbody>
   </table>
 </div>
+<script>
+  const rows = document.querySelectorAll('.click-row');
+  rows.forEach(row => {
+    row.addEventListener('click', () => {
+      window.location = row.getAttribute('data-href');
+    });
+  });
+</script>
 {% endblock %}
