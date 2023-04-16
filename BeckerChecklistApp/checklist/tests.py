@@ -4,8 +4,14 @@ from django.contrib.auth.models import User
 from django.test import RequestFactory
 from django.urls import reverse
 from enum import Enum
-from .models import Job, JobItem, StartedJob, CompletedJobItem, CompletedJob
-from .views import UpdateStartedJob, CreateNewJob, DeleteStartedJob, StartedJobView
+from .models import Job, JobItem, StartedJob, CompletedJobItem, CompletedJob, Client
+from .views import (
+    UpdateStartedJob,
+    CreateNewJob,
+    DeleteStartedJob,
+    StartedJobView,
+    UpdateClient,
+)
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 
@@ -19,7 +25,7 @@ class RequestType(Enum):
 
 
 @contextlib.contextmanager
-def msg_middleware(request):
+def configure_middleware(request):
     """
     Wrap request with message middleware.
     This is only to avoid errors when calling views that use messages.
@@ -38,7 +44,7 @@ class TestJobs:
     @pytest.fixture(autouse=True)
     def setup(self, client):
         """Create some default user, and job data"""
-        self.client = client
+        self.client = Client.objects.create(name="TestClient")
         self.user = User.objects.create_user(username="testuser", password="12345")
         self.job = Job.objects.create(name="Test", description="Something")
         self.job_items = [
@@ -49,23 +55,24 @@ class TestJobs:
         ]
 
     def _make_request(
-        self, url_name: str, obj_pk: int, data: dict, request_type: RequestType
+        self, url_name: str, kwargs: dict, data: dict, request_type: RequestType
     ):
         """Build request and add user"""
         if request_type == RequestType.GET:
             request = RequestFactory().get(
-                reverse(url_name, kwargs={"pk": obj_pk}),
+                reverse(url_name, kwargs=kwargs),
                 data=data,
                 content_type="application/json",
                 HTTP_CONTENT_TYPE="application/json",
             )
         if request_type == RequestType.POST:
             request = RequestFactory().post(
-                reverse(url_name, kwargs={"pk": obj_pk}),
+                reverse(url_name, kwargs=kwargs),
                 data=data,
                 content_type="application/json",
                 HTTP_CONTENT_TYPE="application/json",
             )
+        request.META["HTTP_REFERER"] = "/"
         request.user = self.user
         return request
 
@@ -73,14 +80,15 @@ class TestJobs:
         """Start a new job"""
         request = self._make_request(
             url_name="new_job",
-            obj_pk=self.job.pk,
+            kwargs={"pk": self.job.pk},
             data={},
             request_type=RequestType.GET,
         )
-        CreateNewJob.as_view()(request, self.job.pk)
-        new_jobs = StartedJob.objects.all()
-        assert len(new_jobs) == 1
-        return new_jobs.first()
+        with configure_middleware(request):
+            CreateNewJob.as_view()(request, self.job.pk)
+            new_jobs = StartedJob.objects.all()
+            assert len(new_jobs) == 1
+            return new_jobs.first()
 
     def _complete_job_item(self):
         """Start a new job and call the update view to create a completed job item"""
@@ -88,38 +96,41 @@ class TestJobs:
         job_item = self.job_items[0]
         request = self._make_request(
             url_name="update_started_job",
-            obj_pk=started_job.pk,
+            kwargs={"pk": started_job.pk},
             data={"job_item_id": job_item.pk, "complete": True},
             request_type=RequestType.POST,
         )
-        res = UpdateStartedJob.as_view()(request, started_job.pk)
-        complete_items = CompletedJobItem.objects.all()
-        assert len(complete_items) == 1
-        return complete_items.first(), started_job
+        with configure_middleware(request):
+            res = UpdateStartedJob.as_view()(request, started_job.pk)
+            complete_items = CompletedJobItem.objects.all()
+            assert len(complete_items) == 1
+            return complete_items.first(), started_job
 
     def test_client_update(self):
         """Test the update view to update the client name"""
         started_job = self._start_job()
         request = self._make_request(
-            url_name="update_started_job",
-            obj_pk=started_job.pk,
-            data={"client_name": "Test Client"},
+            url_name="update_client",
+            kwargs={"client_name": self.client.name},
+            data={},
             request_type=RequestType.POST,
         )
-        UpdateStartedJob.as_view()(request, started_job.pk)
-        assert StartedJob.objects.first().client_name == "Test Client"
+        with configure_middleware(request):
+            UpdateClient.as_view()(request, self.client.name)
+            assert request.session.get("client_id") == self.client.pk
 
-    def test_client_update(self):
+    def test_notes_update(self):
         """Test the update view to update the notes"""
         started_job = self._start_job()
         request = self._make_request(
             url_name="update_started_job",
-            obj_pk=started_job.pk,
+            kwargs={"pk": started_job.pk},
             data={"notes": "These are some test notes"},
             request_type=RequestType.POST,
         )
-        UpdateStartedJob.as_view()(request, started_job.pk)
-        assert StartedJob.objects.first().notes == "These are some test notes"
+        with configure_middleware(request):
+            UpdateStartedJob.as_view()(request, started_job.pk)
+            assert StartedJob.objects.first().notes == "These are some test notes"
 
     def test_update_job_complete_item(self):
         """Test the update view to complete a job item"""
@@ -132,23 +143,24 @@ class TestJobs:
         completed_item, started_job = self._complete_job_item()
         request = self._make_request(
             url_name="update_started_job",
-            obj_pk=started_job.pk,
+            kwargs={"pk": started_job.pk},
             data={"job_item_id": completed_item.pk, "complete": False},
             request_type=RequestType.POST,
         )
-        UpdateStartedJob.as_view()(request, started_job.pk)
-        assert not CompletedJobItem.objects.all().exists()
+        with configure_middleware(request):
+            UpdateStartedJob.as_view()(request, started_job.pk)
+            assert not CompletedJobItem.objects.all().exists()
 
     def test_job_complete(self):
         """Test the job detail view to complete the started job"""
         started_job = self._start_job()
         request = self._make_request(
             url_name="job_detail",
-            obj_pk=started_job.pk,
+            kwargs={"pk": started_job.pk},
             data={},
             request_type=RequestType.POST,
         )
-        with msg_middleware(request):
+        with configure_middleware(request):
             StartedJobView.as_view()(request, started_job.pk)
             complete_job = CompletedJob.objects.first()
             assert complete_job.started_job == started_job
@@ -158,10 +170,10 @@ class TestJobs:
         started_job = self._start_job()
         request = self._make_request(
             url_name="delete_job",
-            obj_pk=started_job.pk,
+            kwargs={"pk": started_job.pk},
             data={},
             request_type=RequestType.GET,
         )
-        with msg_middleware(request):
+        with configure_middleware(request):
             DeleteStartedJob.as_view()(request, started_job.pk)
             assert not StartedJob.objects.all().exists()
