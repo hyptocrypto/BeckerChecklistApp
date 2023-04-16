@@ -9,7 +9,7 @@ import json
 
 class _SetClientMixin:
     """
-    Mixin to set a client session variable if not set.
+    Mixin to set a client session variable and context object.
     """
 
     def dispatch(self, request, *args, **kwargs):
