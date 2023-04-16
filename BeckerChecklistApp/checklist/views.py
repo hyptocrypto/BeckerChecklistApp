@@ -7,27 +7,55 @@ from .models import Job, JobItem, StartedJob, CompletedJob, CompletedJobItem, Cl
 import json
 
 
-class JobListView(LoginRequiredMixin, ListView):
+class _SetClientMixin:
+    """
+    Mixin to set a client session variable and context object.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            "client_id" not in request.session
+            or not Client.objects.filter(pk=request.session.get("client_id")).exists()
+        ):
+            request.session["client_id"] = (
+                Client.objects.all().order_by("name").first().pk
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        all_clients = Client.objects.all()
+        context["all_clients"] = all_clients
+        context["current_client"] = all_clients.get(
+            pk=self.request.session.get("client_id")
+        )
+        return context
+
+
+class JobListView(LoginRequiredMixin, _SetClientMixin, ListView):
     model = Job
     template_name = "job_list.jinja"
     context_object_name = "jobs"
 
 
-class CompletedJobListView(LoginRequiredMixin, ListView):
+class CompletedJobListView(LoginRequiredMixin, _SetClientMixin, ListView):
     model = CompletedJob
     template_name = "completed_jobs.jinja"
     context_object_name = "completed_jobs"
 
     def get_queryset(self):
         if self.request.user.is_superuser:
-            return CompletedJob.objects.all().order_by("-created_at")
+            return CompletedJob.objects.filter(
+                started_job__client__pk=self.request.session.get("client_id")
+            ).order_by("-created_at")
         # Override the get_queryset method to filter by the current user
-        return CompletedJob.objects.filter(user=self.request.user).order_by(
-            "-created_at"
-        )
+        return CompletedJob.objects.filter(
+            started_job__client__pk=self.request.session.get("client_id"),
+            user=self.request.user,
+        ).order_by("-created_at")
 
 
-class StartedJobListView(LoginRequiredMixin, ListView):
+class StartedJobListView(LoginRequiredMixin, _SetClientMixin, ListView):
     model = CompletedJob
     template_name = "started_jobs.jinja"
     context_object_name = "jobs"
@@ -35,30 +63,26 @@ class StartedJobListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         if self.request.user.is_superuser:
             # All jobs exclude completed jobs
-            return StartedJob.objects.all().exclude(
+            return StartedJob.objects.filter(
+                client__pk=self.request.session.get("client_id")
+            ).exclude(
                 pk__in=CompletedJob.objects.values_list("started_job_id", flat=True)
             )
         # Override the get_queryset method to filter by the current user and exclude completed jobs
-        return StartedJob.objects.filter(user=self.request.user).exclude(
+        return StartedJob.objects.filter(
+            client__pk=self.request.session.get("client_id"), user=self.request.user
+        ).exclude(
             pk__in=CompletedJob.objects.values_list("started_job_id", flat=True).filter(
                 user=self.request.user
             )
         )
 
 
-class UpdateStartedJob(LoginRequiredMixin, View):
+class UpdateStartedJob(LoginRequiredMixin, _SetClientMixin, View):
     def post(self, request, pk):
         user = request.user
         started_job = StartedJob.objects.get(pk=pk)
         data = json.loads(self.request.body)
-        if client_name := data.get("client_name"):
-            if client := Client.objects.filter(name=client_name).first():
-                started_job.client = client
-                started_job.save()
-            else:
-                client = Client.objects.create(name=client_name)
-                started_job.client = client
-                started_job.save()
         if notes := data.get("notes"):
             started_job.notes = notes
             started_job.save()
@@ -74,16 +98,32 @@ class UpdateStartedJob(LoginRequiredMixin, View):
         return HttpResponse(200)
 
 
-class CreateNewJob(LoginRequiredMixin, View):
+class UpdateClient(LoginRequiredMixin, View):
+    def post(self, request, client_name):
+        client = Client.objects.filter(name=client_name).first()
+        if not client:
+            raise Exception(f"No client with name: {client_name}")
+        request.session["client_id"] = client.pk
+        if "/jobs/" in self.request.META["HTTP_REFERER"]:
+            return HttpResponseRedirect("/started_jobs")
+        if "/job_summary/" in self.request.META["HTTP_REFERER"]:
+            return HttpResponseRedirect("/completed_jobs")
+        return HttpResponseRedirect(self.request.META["HTTP_REFERER"])
+
+
+class CreateNewJob(LoginRequiredMixin, _SetClientMixin, View):
     """Create started job and re-route to started job info page"""
 
     def get(self, request, pk):
         job = Job.objects.get(pk=pk)
-        started_job = StartedJob.objects.create(job=job, user=request.user)
+        client = Client.objects.get(pk=request.session.get("client_id"))
+        started_job = StartedJob.objects.create(
+            job=job, user=request.user, client=client
+        )
         return HttpResponseRedirect(f"/jobs/{started_job.pk}")
 
 
-class DeleteStartedJob(LoginRequiredMixin, View):
+class DeleteStartedJob(LoginRequiredMixin, _SetClientMixin, View):
     def get(self, request, pk):
         try:
             StartedJob.objects.get(pk=pk).delete()
@@ -94,7 +134,7 @@ class DeleteStartedJob(LoginRequiredMixin, View):
             return HttpResponseRedirect("/started_jobs")
 
 
-class CompletedJobSummary(LoginRequiredMixin, TemplateView):
+class CompletedJobSummary(LoginRequiredMixin, _SetClientMixin, TemplateView):
     template_name = "completed_job_summary.jinja"
 
     def get(self, request, pk, **kwargs):
@@ -111,7 +151,7 @@ class CompletedJobSummary(LoginRequiredMixin, TemplateView):
         return render(request, self.template_name, context)
 
 
-class StartedJobView(LoginRequiredMixin, TemplateView):
+class StartedJobView(LoginRequiredMixin, _SetClientMixin, TemplateView):
     """Info page for started job"""
 
     template_name = "job_detail.jinja"

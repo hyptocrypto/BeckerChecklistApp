@@ -53,7 +53,9 @@ class StartedJob(BaseModel):
 
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, null=True, on_delete=models.CASCADE)
+    client = models.ForeignKey(
+        Client, null=True, on_delete=models.CASCADE, related_name="client"
+    )
     notes = models.TextField(max_length=1000, null=True, blank=True)
 
     def __repr__(self):
