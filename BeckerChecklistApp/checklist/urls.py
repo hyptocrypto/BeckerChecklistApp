@@ -8,6 +8,7 @@ from .views import (
     StartedJobListView,
     DeleteStartedJob,
     CompletedJobSummary,
+    UpdateClient,
 )
 
 urlpatterns = [
@@ -19,4 +20,9 @@ urlpatterns = [
     path("create_new_job/<int:pk>/", CreateNewJob.as_view(), name="new_job"),
     path("delete_job/<int:pk>/", DeleteStartedJob.as_view(), name="delete_job"),
     path("update_job/<int:pk>/", UpdateStartedJob.as_view(), name="update_started_job"),
+    path(
+        "update_client/<str:client_name>/",
+        UpdateClient.as_view(),
+        name="update_client",
+    ),
 ]

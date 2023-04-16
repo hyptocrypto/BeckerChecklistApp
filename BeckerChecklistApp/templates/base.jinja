@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,21 +34,57 @@
             width: 25px;
             height: 25px;
         }
+
         tr {
             cursor: pointer
         }
+
     </style>
 
 
     <body>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <button style="margin-bottom: 6px;" class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li>
+                            <div class="client-dropdown" id="client-dropdown">
+                                <button class="btn btn-secondary dropdown-toggle bg-primary" type="button"
+                                    id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">{% if
+                                    current_client %} {{current_client}} {% else %}Select
+                                    Client{% endif %}</button>
+                                <div id="dropdown-menu" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    {% for client in all_clients %}
+                                    <a onclick="return updateClient(this)" class="dropdown-item">{{client}}</a>
+                                    {% endfor %}
+                                    <hr class="dropdown-divider">
+                                    <div class="dropdown-item" onsubmit="return false;">
+                                        <div style="padding: 10px;" class="input-group mb-3">
+                                            <input id="new-client-input" type="text" class="form-control"
+                                                placeholder="Add Client" aria-label="Add Client"
+                                                aria-describedby="button-addon2">
+                                            <button style="margin-left: 4px; border-radius: 5px;"
+                                                class="btn btn-outline-primary" type="button" id="client-button"
+                                                onclick="addNewClient(this)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="add-option-form" style="display:none;">
+                                <div>
+                                    <div class="form-group">
+                                        <input onkeydown="(e)=>e.preventDefault();" type="text" class="form-control"
+                                            id="new-option-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
                         <li class="nav-item">
                             <a class="dropdown-item" href="/">New Job</a>
                         </li>
@@ -59,11 +96,11 @@
                         </li>
                     </ul>
                     {% if request.user.is_superuser %}
-                        <ul class="navbar-nav">
-                            <li class="nav-item dropdown">
-                                <a class="nav-link" href="/admin">Admin</a>
-                            </li>
-                        </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link" href="/admin">Admin</a>
+                        </li>
+                    </ul>
                     {% endif %}
                     <ul class="navbar-nav">
                         <li class="nav-item dropdown">
@@ -100,6 +137,54 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            function addNewClient() {
+                var button = document.getElementById("client-button")
+                var input = button.previousElementSibling;
+                var value = input.value.trim();
+                if (value) {
+                    var dropdownMenu = button.closest(".dropdown-menu");
+                    var all_options = dropdownMenu.querySelectorAll("a")
+                    for (let i = 0; i < all_options.length; i++) {
+                        const op = all_options[i];
+                        if (value === op.text) {
+                            var selectButton = dropdownMenu.closest(".client-dropdown").querySelector(".dropdown-toggle");
+                            selectButton.innerText = value;
+                            return false;
+                        }
+                    }
+                    var newOption = document.createElement("a");
+                    newOption.classList.add("dropdown-item");
+                    newOption.href = "#";
+                    newOption.innerText = value;
+                    dropdownMenu.insertBefore(newOption, dropdownMenu.firstElementChild); // Insert at index 2 to account for divider and form
+                    input.value = "";
+                    var options = dropdownMenu.querySelectorAll(".dropdown-item:not(.form-control)"); // Get all dropdown items except for the form
+                    options.forEach(function (option) {
+                        option.removeAttribute("selected");
+                    });
+                    newOption.setAttribute("selected", "selected");
+                    var selectButton = dropdownMenu.closest(".client-dropdown").querySelector(".dropdown-toggle");
+                    selectButton.innerText = value;
+                    updateClient(newOption)
+                }
+            }
+            function updateClient(option) {
+                var selectButton = document.querySelector(".client-dropdown").querySelector(".dropdown-toggle");
+                selectButton.innerText = option.text;
+                fetch(`/update_client/`+option.text+`/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        "client_name": option.text
+                    })
+                })  .then(resp => {
+                    window.location = resp.url
+                })
+                    .catch(error => console.error(error));
+            };
             function checkScreenWidth() {
                 // Adjust the desciption 
                 var screenWidth = window.innerWidth;
@@ -109,18 +194,18 @@
                 // Loop through description tds and hide/show based on screen size
                 for (var i = 0; i < descriptionTds.length; i++) {
                     if (screenWidth > 768) { // Show description td on desktop
-                    descriptionTds[i].style.display = "table-cell";
+                        descriptionTds[i].style.display = "table-cell";
                     } else { // Hide description td on mobile
-                    descriptionTds[i].style.display = "none";
+                        descriptionTds[i].style.display = "none";
                     }
                 }
 
                 // Loop through mini-description tds and hide/show based on screen size
                 for (var i = 0; i < miniDescriptionTds.length; i++) {
                     if (screenWidth <= 768) { // Show mini-description td on mobile
-                    miniDescriptionTds[i].style.display = "table-cell";
+                        miniDescriptionTds[i].style.display = "table-cell";
                     } else { // Hide mini-description td on desktop
-                    miniDescriptionTds[i].style.display = "none";
+                        miniDescriptionTds[i].style.display = "none";
                     }
                 }
             }
