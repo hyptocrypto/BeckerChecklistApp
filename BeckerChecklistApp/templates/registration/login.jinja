@@ -37,4 +37,10 @@
       </div>
     </div>
   </div>
+  <script>
+    let logged_in = {{request.user.is_authenticated|safe|tojson}}
+    if (logged_in == "True"){
+      window.location = "/"
+    };
+  </script>
 {% endblock %}
