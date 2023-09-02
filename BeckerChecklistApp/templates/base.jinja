@@ -43,6 +43,7 @@
 
 
     <body>
+        {% if request.user.is_authenticated %}
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <button style="margin-bottom: 6px;" class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -86,10 +87,10 @@
                             </div>
                         </li>
                         <li class="nav-item">
-                            <a class="dropdown-item" href="/">New Job</a>
+                            <a class="dropdown-item" href="/">Jobs</a>
                         </li>
                         <li class="nav-item">
-                            <a class="dropdown-item" href="/started_jobs">Current Jobs</a>
+                            <a class="dropdown-item" href="/started_jobs">Jobs in Progress</a>
                         </li>
                         <li class="nav-item">
                             <a class="dropdown-item" href="/completed_jobs">Completed Jobs</a>
@@ -110,6 +111,7 @@
                 </div>
             </div>
         </nav>
+        {% endif %}
         <div class="container my-4">
             {% if messages %}
             {% for message in messages %}
@@ -180,10 +182,7 @@
                     body: JSON.stringify({
                         "client_name": option.text
                     })
-                })  .then(resp => {
-                    window.location = resp.url
-                })
-                    .catch(error => console.error(error));
+                }).catch(error => console.error(error));
             };
             function checkScreenWidth() {
                 // Adjust the desciption 

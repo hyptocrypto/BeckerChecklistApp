@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Job, JobItem, CompletedJob, Client
+from .models import Job, JobItem, CompletedJob, Client, StartedJob
 
 
 class JobItemInline(admin.StackedInline):
@@ -25,4 +25,9 @@ class CompletedJobItemAdmin(admin.ModelAdmin):
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(StartedJob)
+class StartedJobAdmin(admin.ModelAdmin):
     pass

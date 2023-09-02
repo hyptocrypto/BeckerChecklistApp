@@ -34,7 +34,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
     "127.0.0.1",
-    "192.168.1.21",
+    "192.168.1.19",
 ]
 CSRF_TRUSTED_ORIGINS = ["https://becker-app-gecb6vttdq-uc.a.run.app"]
 
