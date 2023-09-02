@@ -21,11 +21,11 @@
                 {% endif %}
                 <form method="post">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                <div class="form-group" style="margin-bottom: 10px;">
+                <div class="login form-group" style="margin-bottom: 10px;" >
                     Name
                     {{ form.username }}
                 </div>
-                <div class="form-group" style="margin-bottom: 10px;">
+                <div class="login form-group" style="margin-bottom: 10px;" >
                     {{ form.password.label }}
                     {{ form.password }}
                 </div>
