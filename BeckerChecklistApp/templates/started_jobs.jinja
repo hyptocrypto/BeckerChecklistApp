@@ -9,6 +9,9 @@
       <tr>
         <th style="min-width: 15vh;">Name</th>
         <th>Client</th>
+        {% if request.user.is_superuser %}
+        <th>User</th>
+        {% endif %}
         <th>Actions</th>
       </tr>
     </thead>
@@ -17,6 +20,9 @@
       <tr class="click-row" data-href="/jobs/{{job.pk}}">
         <td style="min-width: 15vh;">{{ job.job.name }}</td>
         <td>{{job.client }}</td>
+        {% if request.user.is_superuser %}
+        <td>{{ job.user }}</td>
+        {% endif %}
         <td>
           <a href="/delete_job/{{job.pk}}" class="btn btn-sm btn-danger">Delete</a>
         </td>

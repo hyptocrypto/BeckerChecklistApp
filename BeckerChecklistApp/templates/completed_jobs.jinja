@@ -8,10 +8,10 @@
     <thead>
       <tr>
         <th style="min-width: 15vh;">Name</th>
+        <th>Client</th>
         {% if request.user.is_superuser %}
         <th>User</th>
         {% endif %}
-        <th>Client</th>
         <th>Completed</th>
       </tr>
     </thead>
@@ -19,10 +19,10 @@
       {% for job in completed_jobs %}
       <tr class="click-row" data-href="/job_summary/{{job.pk}}">
         <td>{{ job.started_job.job.name }}</td>
+        <td>{{job.started_job.client}}</td>
         {% if request.user.is_superuser %}
         <td>{{ job.user }}</td>
         {% endif %}
-        <td>{{job.started_job.client}}</td>
         <td>{{localtime(job.created_at).strftime('%Y-%m-%d %H:%M') }}</td>
       </tr>
       {% endfor %}
