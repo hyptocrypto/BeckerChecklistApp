@@ -7,7 +7,8 @@ storage_client = Client()
 
 def gcp_storage_sync():
     """Sync db file back to GCP"""
-    db_file_name = settings.DATABASES.get("default").get("NAME")
-    storage_client.bucket("bhm_app_db").blob("db.sqlite3").upload_from_filename(
-        db_file_name
-    )
+    if not settings.TESTING:
+        db_file_name = settings.DATABASES.get("default").get("NAME")
+        storage_client.bucket("bhm_app_db").blob("db.sqlite3").upload_from_filename(
+            db_file_name
+        )
