@@ -9,6 +9,6 @@ class ChecklistConfig(AppConfig):
     name = "checklist"
 
     def ready(self):
-        """On start up, pull down the db file from google cloud storage"""
+        """On start up, start background thread to update db file periodically"""
         sync_daemon = Thread(target=gcp_storage_sync, daemon=True)
         sync_daemon.start()

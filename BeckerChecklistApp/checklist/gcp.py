@@ -13,7 +13,7 @@ except Exception as e:
 
 
 def gcp_storage_sync():
-    """Sync db file back to GCP"""
+    """Sync db file back to GCP every 1 min"""
     if storage_client and not settings.TESTING:
         while True:
             LOGGER.info("Syncing DB")
