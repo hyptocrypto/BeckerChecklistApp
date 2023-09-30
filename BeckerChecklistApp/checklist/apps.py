@@ -10,5 +10,5 @@ class ChecklistConfig(AppConfig):
 
     def ready(self):
         """On start up, start background thread to update db file periodically"""
-        sync_daemon = Thread(target=gcp_storage_sync, daemon=True)
-        sync_daemon.start()
+        gcp_storage_sync
+        

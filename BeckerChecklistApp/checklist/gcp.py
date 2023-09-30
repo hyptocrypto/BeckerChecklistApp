@@ -15,10 +15,9 @@ except Exception as e:
 def gcp_storage_sync():
     """Sync db file back to GCP every 1 min"""
     if storage_client and not settings.TESTING:
-        while True:
-            LOGGER.info("Syncing DB")
-            db_file_name = settings.DATABASES.get("default").get("NAME")
-            storage_client.bucket("bhm_app_db").blob("db.sqlite3").upload_from_filename(
-                db_file_name
-            )
-            time.sleep(60)
+        LOGGER.info("Syncing DB")
+        db_file_name = settings.DATABASES.get("default").get("NAME")
+        storage_client.bucket("bhm_app_db").blob("db.sqlite3").upload_from_filename(
+            db_file_name
+        )
+
