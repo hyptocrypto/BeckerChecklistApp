@@ -1,8 +1,10 @@
 from google.cloud.storage import Client
 from django.conf import settings
 
-
-storage_client = Client() if not settings.TESTING else None
+try:
+    storage_client = Client()
+except Exception as e:
+    storage_client = None
 
 
 def gcp_storage_sync():
