@@ -1,3 +1,4 @@
+from threading import Thread
 from django.apps import AppConfig
 
 from checklist.gcp import gcp_storage_sync
@@ -9,4 +10,5 @@ class ChecklistConfig(AppConfig):
 
     def ready(self):
         """On start up, pull down the db file from google cloud storage"""
-        gcp_storage_sync()
+        sync_daemon = Thread(target=gcp_storage_sync, daemon=True)
+        sync_daemon.start()
