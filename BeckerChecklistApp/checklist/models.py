@@ -11,6 +11,16 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+    
+    def save(self, *args, **kwargs):
+        ret = super().save(*args, **kwargs)
+        gcp_storage_sync()
+        return ret
+
+    def delete(self, *args, **kwargs):
+        ret = super().delete(*args, **kwargs)
+        gcp_storage_sync()
+        return ret
 
 
 class Client(BaseModel):
@@ -106,14 +116,3 @@ class CompletedJob(BaseModel):
 
     def __str__(self):
         return f"Completed({self.started_job}) - {self.user}"
-
-
-for mod in [StartedJob, CompletedJob, CompletedJobItem, Job, JobItem, Client]:
-
-    @receiver(post_save, sender=mod)
-    def save_sync(sender, **kwargs):
-        gcp_storage_sync()
-
-    @receiver(post_delete, sender=mod)
-    def delete_sync(sender, **kwargs):
-        gcp_storage_sync()
