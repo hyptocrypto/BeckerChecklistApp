@@ -8,6 +8,7 @@ RUN apt-get install ffmpeg libsm6 libxext6  -y && apt install -y git
 
 WORKDIR /app
 
+
 # Copy over requirements and install first. 
 # That  way the layer is unchanged due to code changes. Faster rebuilds
 COPY BeckerChecklistApp/requirements.txt .

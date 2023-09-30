@@ -1,3 +1,6 @@
+from checklist.gcp import gcp_storage_sync
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -103,3 +106,14 @@ class CompletedJob(BaseModel):
 
     def __str__(self):
         return f"Completed({self.started_job}) - {self.user}"
+
+
+for mod in [StartedJob, CompletedJob, CompletedJobItem, Job, JobItem, Client]:
+
+    @receiver(post_save, sender=mod)
+    def save_sync(sender, **kwargs):
+        gcp_storage_sync()
+
+    @receiver(post_delete, sender=mod)
+    def delete_sync(sender, **kwargs):
+        gcp_storage_sync()
