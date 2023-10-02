@@ -1,7 +1,7 @@
 from threading import Thread
 from django.apps import AppConfig
 
-from checklist.gcp import gcp_storage_sync
+from checklist.gcp import fetch_db
 
 
 class ChecklistConfig(AppConfig):
@@ -10,5 +10,5 @@ class ChecklistConfig(AppConfig):
 
     def ready(self):
         """On start up, start background thread to update db file periodically"""
-        gcp_storage_sync
+        fetch_db()
         
