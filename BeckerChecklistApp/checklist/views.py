@@ -1,3 +1,4 @@
+from checklist.gcp import gcp_storage_sync
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic import ListView, View, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -100,7 +101,9 @@ class UpdateStartedJob(LoginRequiredMixin, _SetClientMixin, View):
 
 class UpdateClient(LoginRequiredMixin, View):
     def post(self, request, client_name):
-        client, _ = Client.objects.get_or_create(name=client_name)
+        if not (client := Client.objects.filter(name=client_name).first()):
+            client = Client(name=client_name)
+            client.save()
         request.session["client_id"] = client.pk
         if "/jobs/" in self.request.META["HTTP_REFERER"]:
             return HttpResponseRedirect("/started_jobs")

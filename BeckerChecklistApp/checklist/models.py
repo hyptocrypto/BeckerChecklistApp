@@ -1,3 +1,4 @@
+from django.conf import settings
 from checklist.gcp import gcp_storage_sync
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -13,12 +14,14 @@ class BaseModel(models.Model):
         abstract = True
     
     def save(self, *args, **kwargs):
-        ret = super().save(*args, **kwargs)
+        with settings.DB_LOCK:
+            ret = super().save(*args, **kwargs)
         gcp_storage_sync()
         return ret
 
     def delete(self, *args, **kwargs):
-        ret = super().delete(*args, **kwargs)
+        with settings.DB_LOCK:
+            ret = super().delete(*args, **kwargs)
         gcp_storage_sync()
         return ret
 
